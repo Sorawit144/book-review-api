@@ -1,0 +1,20 @@
+$kind: http-request
+url: "{{baseUrl}}/books/{{bookId}}/reviews"
+method: POST
+headers:
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+      "rating": 5,
+      "content": "เนื้อหาเข้าใจง่าย มีตัวอย่างประกอบ"
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('HTTP 201', function () { pm.response.to.have.status(201); });
+      if (pm.response.code === 201) { pm.collectionVariables.set('reviewId', pm.response.json().id); }
+      pm.test('Review belongs to book', function () { pm.expect(pm.response.json().bookId).to.eql(Number(pm.collectionVariables.get('bookId'))); });
+    language: text/javascript
+order: 3000

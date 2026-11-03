@@ -1,0 +1,10 @@
+$kind: http-request
+url: "{{baseUrl}}/books"
+method: GET
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('HTTP 200', function () { pm.response.to.have.status(200); });
+      pm.test('Book list contains nested reviews', function () { const book = pm.response.json().find(b => b.id === Number(pm.collectionVariables.get('bookId'))); pm.expect(book).to.be.an('object'); pm.expect(book.reviews).to.have.lengthOf(1); });
+    language: text/javascript
+order: 5000

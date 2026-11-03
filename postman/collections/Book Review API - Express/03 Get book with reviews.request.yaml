@@ -1,0 +1,10 @@
+$kind: http-request
+url: "{{baseUrl}}/books/{{bookId}}"
+method: GET
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('HTTP 200', function () { pm.response.to.have.status(200); });
+      pm.test('Nested review is returned', function () { const book = pm.response.json(); pm.expect(book.reviews).to.have.lengthOf(1); pm.expect(book.reviews[0].id).to.eql(Number(pm.collectionVariables.get('reviewId'))); });
+    language: text/javascript
+order: 4000

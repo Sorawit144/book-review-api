@@ -1,0 +1,19 @@
+$kind: http-request
+url: "{{baseUrl}}/books/{{bookId}}"
+method: PUT
+headers:
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+      "title": "เรียนรู้ Express และ Prisma ฉบับใหม่",
+      "author": "สมชาย ใจดี",
+      "publishedAt": "2026-10-07T00:00:00.000Z",
+      "coverUrl": "https://example.com/cover.jpg"
+    }
+scripts:
+  - type: afterResponse
+    code: pm.test('HTTP 200', function () { pm.response.to.have.status(200); });
+    language: text/javascript
+order: 8000

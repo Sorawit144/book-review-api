@@ -1,0 +1,6 @@
+$kind: collection
+description: เรียกตามลำดับเพื่อสร้างหนังสือ เพิ่มรีวิว อ่าน nested reviews แก้ไข ตรวจ validation และลบข้อมูล พร้อมบันทึก ID จาก response อัตโนมัติ
+variables:
+  baseUrl: http://localhost:3000
+  bookId: ""
+  reviewId: ""

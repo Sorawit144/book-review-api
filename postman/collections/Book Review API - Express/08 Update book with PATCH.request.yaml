@@ -1,0 +1,18 @@
+$kind: http-request
+url: "{{baseUrl}}/books/{{bookId}}"
+method: PATCH
+headers:
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+      "coverUrl": null
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('HTTP 200', function () { pm.response.to.have.status(200); });
+      pm.test('Clear nullable coverUrl', function () { pm.expect(pm.response.json().coverUrl).to.eql(null); });
+    language: text/javascript
+order: 9000

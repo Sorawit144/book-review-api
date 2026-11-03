@@ -1,0 +1,398 @@
+{
+  "info": {
+    "name": "Book Review API - Express",
+    "description": "เรียกตามลำดับเพื่อสร้างหนังสือ เพิ่มรีวิว อ่าน nested reviews แก้ไข ตรวจ validation และลบข้อมูล พร้อมบันทึก ID จาก response อัตโนมัติ",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3000"
+    },
+    {
+      "key": "bookId",
+      "value": ""
+    },
+    {
+      "key": "reviewId",
+      "value": ""
+    }
+  ],
+  "item": [
+    {
+      "name": "00 Health",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/health"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 200', function () { pm.response.to.have.status(200); });",
+              "pm.test('Database is reachable', function () { pm.expect(pm.response.json().status).to.eql('ok'); });"
+            ]
+          }
+        }
+      ],
+      "response": []
+    },
+    {
+      "name": "01 Create book",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/books",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"title\": \"เรียนรู้ Express และ Prisma\",\n  \"author\": \"สมชาย ใจดี\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 201', function () { pm.response.to.have.status(201); });",
+              "if (pm.response.code === 201) { pm.collectionVariables.set('bookId', pm.response.json().id); }",
+              "pm.test('Defaults and empty reviews', function () { const book = pm.response.json(); pm.expect(book.coverUrl).to.eql(null); pm.expect(book.reviews).to.eql([]); pm.expect(book.publishedAt).to.be.a('string'); });"
+            ]
+          }
+        }
+      ],
+      "response": []
+    },
+    {
+      "name": "02 Add review",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/books/{{bookId}}/reviews",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"rating\": 5,\n  \"content\": \"เนื้อหาเข้าใจง่าย มีตัวอย่างประกอบ\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 201', function () { pm.response.to.have.status(201); });",
+              "if (pm.response.code === 201) { pm.collectionVariables.set('reviewId', pm.response.json().id); }",
+              "pm.test('Review belongs to book', function () { pm.expect(pm.response.json().bookId).to.eql(Number(pm.collectionVariables.get('bookId'))); });"
+            ]
+          }
+        }
+      ],
+      "response": []
+    },
+    {
+      "name": "03 Get book with reviews",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/books/{{bookId}}"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 200', function () { pm.response.to.have.status(200); });",
+              "pm.test('Nested review is returned', function () { const book = pm.response.json(); pm.expect(book.reviews).to.have.lengthOf(1); pm.expect(book.reviews[0].id).to.eql(Number(pm.collectionVariables.get('reviewId'))); });"
+            ]
+          }
+        }
+      ],
+      "response": []
+    },
+    {
+      "name": "04 List books with reviews",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/books"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 200', function () { pm.response.to.have.status(200); });",
+              "pm.test('Book list contains nested reviews', function () { const book = pm.response.json().find(b => b.id === Number(pm.collectionVariables.get('bookId'))); pm.expect(book).to.be.an('object'); pm.expect(book.reviews).to.have.lengthOf(1); });"
+            ]
+          }
+        }
+      ],
+      "response": []
+    },
+    {
+      "name": "05 List book reviews",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/books/{{bookId}}/reviews"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 200', function () { pm.response.to.have.status(200); });",
+              "pm.test('Review list', function () { pm.expect(pm.response.json()).to.have.lengthOf(1); });"
+            ]
+          }
+        }
+      ],
+      "response": []
+    },
+    {
+      "name": "06 Get one review",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/books/{{bookId}}/reviews/{{reviewId}}"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 200', function () { pm.response.to.have.status(200); });"
+            ]
+          }
+        }
+      ],
+      "response": []
+    },
+    {
+      "name": "07 Update book with PUT",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/books/{{bookId}}",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"title\": \"เรียนรู้ Express และ Prisma ฉบับใหม่\",\n  \"author\": \"สมชาย ใจดี\",\n  \"publishedAt\": \"2026-10-07T00:00:00.000Z\",\n  \"coverUrl\": \"https://example.com/cover.jpg\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 200', function () { pm.response.to.have.status(200); });"
+            ]
+          }
+        }
+      ],
+      "response": []
+    },
+    {
+      "name": "08 Update book with PATCH",
+      "request": {
+        "method": "PATCH",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/books/{{bookId}}",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"coverUrl\": null\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 200', function () { pm.response.to.have.status(200); });",
+              "pm.test('Clear nullable coverUrl', function () { pm.expect(pm.response.json().coverUrl).to.eql(null); });"
+            ]
+          }
+        }
+      ],
+      "response": []
+    },
+    {
+      "name": "09 Update review",
+      "request": {
+        "method": "PATCH",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/books/{{bookId}}/reviews/{{reviewId}}",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"rating\": 4,\n  \"content\": \"ปรับคะแนนหลังอ่านจบ\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 200', function () { pm.response.to.have.status(200); });",
+              "pm.test('Rating is updated', function () { pm.expect(pm.response.json().rating).to.eql(4); });"
+            ]
+          }
+        }
+      ],
+      "response": []
+    },
+    {
+      "name": "10 Reject rating outside 1-5",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/books/{{bookId}}/reviews",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"rating\": 6,\n  \"content\": \"คะแนนไม่ถูกต้อง\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 400', function () { pm.response.to.have.status(400); });",
+              "pm.test('Validation error', function () { pm.expect(pm.response.json().error.message).to.include('1 to 5'); });"
+            ]
+          }
+        }
+      ],
+      "response": []
+    },
+    {
+      "name": "11 Delete review",
+      "request": {
+        "method": "DELETE",
+        "header": [],
+        "url": "{{baseUrl}}/books/{{bookId}}/reviews/{{reviewId}}"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 204', function () { pm.response.to.have.status(204); });"
+            ]
+          }
+        }
+      ],
+      "response": []
+    },
+    {
+      "name": "12 Delete book",
+      "request": {
+        "method": "DELETE",
+        "header": [],
+        "url": "{{baseUrl}}/books/{{bookId}}"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 204', function () { pm.response.to.have.status(204); });"
+            ]
+          }
+        }
+      ],
+      "response": []
+    },
+    {
+      "name": "13 Get deleted book",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/books/{{bookId}}"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 404', function () { pm.response.to.have.status(404); });"
+            ]
+          }
+        }
+      ],
+      "response": []
+    }
+  ]
+}

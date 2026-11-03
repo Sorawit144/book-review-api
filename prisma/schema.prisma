@@ -1,0 +1,27 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Book {
+  id          Int      @id @default(autoincrement())
+  title       String
+  author      String
+  publishedAt DateTime @default(now())
+  coverUrl    String?
+  reviews     Review[]
+}
+
+model Review {
+  id      Int    @id @default(autoincrement())
+  rating  Int
+  content String
+  bookId  Int
+  book    Book   @relation(fields: [bookId], references: [id], onDelete: Cascade)
+
+  @@index([bookId])
+}

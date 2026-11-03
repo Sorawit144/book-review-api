@@ -1,0 +1,20 @@
+$kind: http-request
+url: "{{baseUrl}}/books"
+method: POST
+headers:
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+      "title": "เรียนรู้ Express และ Prisma",
+      "author": "สมชาย ใจดี"
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('HTTP 201', function () { pm.response.to.have.status(201); });
+      if (pm.response.code === 201) { pm.collectionVariables.set('bookId', pm.response.json().id); }
+      pm.test('Defaults and empty reviews', function () { const book = pm.response.json(); pm.expect(book.coverUrl).to.eql(null); pm.expect(book.reviews).to.eql([]); pm.expect(book.publishedAt).to.be.a('string'); });
+    language: text/javascript
+order: 2000
